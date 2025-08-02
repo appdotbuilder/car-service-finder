@@ -1,9 +1,20 @@
 
+import { db } from '../db';
+import { carServicesTable } from '../db/schema';
 import { type CarService } from '../schema';
+import { eq } from 'drizzle-orm';
 
-export async function getCarServices(): Promise<CarService[]> {
-  // This is a placeholder declaration! Real code should be implemented here.
-  // The goal of this handler is to fetch all active car service providers from the database
-  // with their basic information (name, phone, description).
-  return [];
-}
+export const getCarServices = async (): Promise<CarService[]> => {
+  try {
+    // Query for all active car services
+    const results = await db.select()
+      .from(carServicesTable)
+      .where(eq(carServicesTable.is_active, true))
+      .execute();
+
+    return results;
+  } catch (error) {
+    console.error('Get car services failed:', error);
+    throw error;
+  }
+};

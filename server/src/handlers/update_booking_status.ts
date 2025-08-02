@@ -1,21 +1,29 @@
 
+import { db } from '../db';
+import { bookingsTable } from '../db/schema';
 import { type UpdateBookingStatusInput, type Booking } from '../schema';
+import { eq } from 'drizzle-orm';
 
 export async function updateBookingStatus(input: UpdateBookingStatusInput): Promise<Booking> {
-  // This is a placeholder declaration! Real code should be implemented here.
-  // The goal of this handler is to update the status of an existing booking
-  // (e.g., from pending to confirmed, or confirmed to completed).
-  return {
-    id: input.id,
-    service_id: 0,
-    route_id: 0,
-    vehicle_id: null,
-    customer_name: '',
-    customer_phone: '',
-    pickup_time: new Date(),
-    passenger_count: 1,
-    status: input.status,
-    notes: null,
-    created_at: new Date()
-  } as Booking;
+  try {
+    // Update booking status
+    const result = await db.update(bookingsTable)
+      .set({
+        status: input.status
+      })
+      .where(eq(bookingsTable.id, input.id))
+      .returning()
+      .execute();
+
+    if (result.length === 0) {
+      throw new Error(`Booking with id ${input.id} not found`);
+    }
+
+    // Return the booking (no numeric conversions needed for bookings table)
+    const booking = result[0];
+    return booking;
+  } catch (error) {
+    console.error('Booking status update failed:', error);
+    throw error;
+  }
 }

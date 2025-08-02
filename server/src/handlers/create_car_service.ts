@@ -1,16 +1,27 @@
 
+import { db } from '../db';
+import { carServicesTable } from '../db/schema';
 import { type CreateCarServiceInput, type CarService } from '../schema';
 
-export async function createCarService(input: CreateCarServiceInput): Promise<CarService> {
-  // This is a placeholder declaration! Real code should be implemented here.
-  // The goal of this handler is to create a new car service provider
-  // and persist it in the database.
-  return {
-    id: 0,
-    name: input.name,
-    phone: input.phone,
-    description: input.description || null,
-    is_active: true,
-    created_at: new Date()
-  } as CarService;
-}
+export const createCarService = async (input: CreateCarServiceInput): Promise<CarService> => {
+  try {
+    // Insert car service record
+    const result = await db.insert(carServicesTable)
+      .values({
+        name: input.name,
+        phone: input.phone,
+        description: input.description || null
+      })
+      .returning()
+      .execute();
+
+    const carService = result[0];
+    return {
+      ...carService,
+      // No numeric conversions needed - all fields are already correct types
+    };
+  } catch (error) {
+    console.error('Car service creation failed:', error);
+    throw error;
+  }
+};
